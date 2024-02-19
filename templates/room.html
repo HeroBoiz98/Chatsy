@@ -23,42 +23,37 @@
     <span id="user-name" style="display: none;">{{ user_name }}</span>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.3.1/socket.io.js"></script>
     <script>
+        var user_name = document.getElementById('user-name').innerText.trim();
+        var room_code = "{{ room_code }}";
+
         var socket = io.connect('http://' + document.domain + ':' + location.port);
 
         socket.on('connect', function() {
-            console.log('Connected to server');
+            socket.emit('join', {room: room_code});
         });
 
-        socket.on('receive_message', function(message) {
-            console.log('Received message:', message);
-            var chatBox = document.getElementById('chat-box');
-            var newMessage = document.createElement('div');
-            newMessage.className = 'message received';
-            newMessage.innerHTML = '<strong>' + message.user + ':</strong> ' + message.text;
-            chatBox.appendChild(newMessage);
-            chatBox.scrollTop = chatBox.scrollHeight;
+        socket.on('message', function(data) {
+            if (data && data.user && data.text) { // Check if data is valid
+                var chatBox = document.getElementById('chat-box');
+                var newMessage = document.createElement('div');
+                if (data.user === user_name) {
+                    newMessage.className = 'message sent';
+                } else {
+                    newMessage.className = 'message received';
+                }
+                newMessage.innerHTML = '<strong>' + data.user + ':</strong> ' + data.text;
+                chatBox.appendChild(newMessage);
+                chatBox.scrollTop = chatBox.scrollHeight;
+            }
         });
 
         document.getElementById('message-form').addEventListener('submit', function(e) {
             e.preventDefault();
             var messageInput = document.getElementById('message-input');
             var messageText = messageInput.value.trim();
-            var userName = document.getElementById('user-name').innerText.trim();
-            var roomCode = "{{ room_code }}";
             if (messageText !== "") {
-                var message = {
-                    'message': messageText,
-                    'user_name': userName,
-                    'room_code': roomCode
-                };
-                socket.emit('send_message', message);
+                socket.emit('send_message', {'room_code': room_code, 'message': messageText});
                 messageInput.value = '';
-                var chatBox = document.getElementById('chat-box');
-                var newMessage = document.createElement('div');
-                newMessage.className = 'message sent';
-                newMessage.innerHTML = '<strong>' + userName + ':</strong> ' + messageText;
-                chatBox.appendChild(newMessage);
-                chatBox.scrollTop = chatBox.scrollHeight;
             }
         });
     </script>
