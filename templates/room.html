@@ -1,0 +1,50 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Room</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="chat-container">
+        <div id="chat-box" class="chat-box">
+            {% for message in messages %}
+                <div class="message"><strong>{{ message.user }}:</strong> {{ message.text }}</div> <!-- Display user's name -->
+            {% endfor %}
+        </div>
+        <form id="message-form" action="/room/{{ room_code }}/send_message" method="post">
+            <input type="text" id="message-input" name="message" placeholder="Type your message...">
+            <button type="submit">Send</button>
+        </form>
+    </div>
+    <span id="user-name" style="display: none;">{{ user_name }}</span> <!-- Hide user's name element -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('#message-form').submit(function(e) {
+                e.preventDefault();
+                var message = $('#message-input').val();
+                var user_name = $('#user-name').text();  // Retrieve user's name
+                $.ajax({
+                    type: 'POST',
+                    url: $(this).attr('action'),
+                    data: {
+                        'message': message,
+                        'user_name': user_name  // Include user's name in the data
+                    },
+                    success: function(response) {
+                        console.log(response);
+                        $('#message-input').val('');
+                        $('#chat-box').append('<div class="message"><strong>' + user_name + ':</strong> ' + message + '</div>');
+                    },
+                    error: function(error) {
+                        console.log(error);
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
