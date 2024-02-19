@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat App</title>
+</head>
+<body>
+    <h1>Welcome to the Chat App</h1>
+    <a href="/create_room">Create Room</a><br>
+    <form id="joinForm" method="get">
+        <label for="room_code">Enter Room Code:</label><br>
+        <input type="text" id="room_code" name="room_code"><br>
+        <label for="name">Enter Your Name:</label><br> <!-- Update label to prompt user to enter their name -->
+        <input type="text" id="name" name="name"><br> <!-- Add input field to enter user's name -->
+        <input type="button" value="Join Room" onclick="joinRoom()">
+    </form>
+    
+    <script>
+        function joinRoom() {
+            var roomCode = document.getElementById("room_code").value.trim();
+            var userName = document.getElementById("name").value.trim(); // Retrieve user's name
+            if (roomCode !== "") {
+                window.location.href = "/join_room/" + roomCode + "?name=" + userName; // Pass user's name as a query parameter
+            }
+        }
+    </script>
+    
+</body>
+</html>
