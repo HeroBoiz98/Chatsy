@@ -1,4 +1,4 @@
--e git+https://github.com/eventlet/eventlet.git@master#egg=eventlet
+eventlet==0.32.0
 
 Werkzeug==2.0.2
 Flask==2.0.2
