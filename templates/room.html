@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -11,39 +10,56 @@
     <div class="chat-container">
         <div id="chat-box" class="chat-box">
             {% for message in messages %}
-                <div class="message"><strong>{{ message.user }}:</strong> {{ message.text }}</div> <!-- Display user's name -->
+                <div class="message {% if message.user == user_name %}sent{% else %}received{% endif %}">
+                    <strong>{{ message.user }}:</strong> {{ message.text }}
+                </div>
             {% endfor %}
         </div>
-        <form id="message-form" action="/room/{{ room_code }}/send_message" method="post">
-            <input type="text" id="message-input" name="message" placeholder="Type your message...">
+        <form id="message-form">
+            <input type="text" id="message-input" placeholder="Type your message...">
             <button type="submit">Send</button>
         </form>
     </div>
     <span id="user-name" style="display: none;">{{ user_name }}</span> <!-- Hide user's name element -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.3.1/socket.io.js"></script>
     <script>
-        $(document).ready(function() {
-            $('#message-form').submit(function(e) {
-                e.preventDefault();
-                var message = $('#message-input').val();
-                var user_name = $('#user-name').text();  // Retrieve user's name
-                $.ajax({
-                    type: 'POST',
-                    url: $(this).attr('action'),
-                    data: {
-                        'message': message,
-                        'user_name': user_name  // Include user's name in the data
-                    },
-                    success: function(response) {
-                        console.log(response);
-                        $('#message-input').val('');
-                        $('#chat-box').append('<div class="message"><strong>' + user_name + ':</strong> ' + message + '</div>');
-                    },
-                    error: function(error) {
-                        console.log(error);
-                    }
-                });
-            });
+        var socket = io.connect('http://' + document.domain + ':' + location.port);
+
+        socket.on('connect', function() {
+            console.log('Connected to server');
+        });
+
+        socket.on('receive_message', function(message) {
+            console.log('Received message:', message);
+            var chatBox = document.getElementById('chat-box');
+            var newMessage = document.createElement('div');
+            newMessage.className = 'message received';
+            newMessage.innerHTML = '<strong>' + message.user + ':</strong> ' + message.text;
+            chatBox.appendChild(newMessage);
+            chatBox.scrollTop = chatBox.scrollHeight; // Scroll to the bottom of the chat box
+        });
+
+        document.getElementById('message-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            var messageInput = document.getElementById('message-input');
+            var messageText = messageInput.value.trim();
+            var userName = document.getElementById('user-name').innerText.trim(); // Retrieve user's name
+            var roomCode = "{{ room_code }}"; // Retrieve room code
+            if (messageText !== "") {
+                var message = {
+                    'message': messageText,
+                    'user_name': userName,
+                    'room_code': roomCode
+                };
+                socket.emit('send_message', message);
+                messageInput.value = ''; // Clear input field after sending message
+                var chatBox = document.getElementById('chat-box');
+                var newMessage = document.createElement('div');
+                newMessage.className = 'message sent';
+                newMessage.innerHTML = '<strong>' + userName + ':</strong> ' + messageText;
+                chatBox.appendChild(newMessage);
+                chatBox.scrollTop = chatBox.scrollHeight; // Scroll to the bottom of the chat box
+            }
         });
     </script>
 </body>
