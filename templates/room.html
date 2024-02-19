@@ -26,7 +26,7 @@
     var user_name = document.getElementById('user-name').innerText.trim();
     var room_code = "{{ room_code }}";
 
-    var socket = io.connect('http://' + document.domain + ':' + location.port);
+    var socket = io.connect('https://' + document.domain + ':' + location.port);
 
     socket.on('connect', function() {
         socket.emit('join', {room: room_code});
