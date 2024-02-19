@@ -1,8 +1,11 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request
+from flask_socketio import SocketIO, emit
 import os
 import uuid
 
 app = Flask(__name__)
+app.config['SECRET_KEY'] = 'your_secret_key'
+socketio = SocketIO(app)
 
 # Directory to store HTML files for rooms
 ROOMS_DIR = 'rooms'
@@ -43,16 +46,25 @@ def join_room(room_code):
         # Handle POST request if needed
         pass
 
-@app.route('/room/<room_code>/send_message', methods=['POST'])
-def send_message(room_code):
-    message_text = request.form['message']
-    user_name = request.form['user_name']
+@socketio.on('connect')
+def handle_connect():
+    print('Client connected')
+
+@socketio.on('disconnect')
+def handle_disconnect():
+    print('Client disconnected')
+
+@socketio.on('send_message')
+def handle_message(message):
+    room_code = message['room_code']
+    message_text = message['message']
+    user_name = message['user_name']
     message = {'user': user_name, 'text': message_text}
     room_messages[room_code].append(message)
-    return jsonify({'message': 'Message sent successfully!'})
+    emit('receive_message', message, room=room_code, broadcast=True)
 
 def generate_room_code():
     return str(uuid.uuid4())[:10]
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    socketio.run(app, debug=True)
