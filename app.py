@@ -1,5 +1,5 @@
-from flask import Flask, render_template, request
-from flask_socketio import SocketIO, emit
+from flask import Flask, render_template, request, jsonify
+from flask_socketio import SocketIO
 import os
 import uuid
 
@@ -25,10 +25,8 @@ def home():
 def create_room():
     room_code = generate_room_code()
     room_file = os.path.join(ROOMS_DIR, f'{room_code}.html')
-    # Create an HTML file for the room
     with open(room_file, 'w') as f:
         f.write('')
-    # Initialize an empty list for messages in the room
     room_messages[room_code] = []
     return f'Room created! Unique code: {room_code}'
 
@@ -43,25 +41,16 @@ def join_room(room_code):
         else:
             return 'Room not found!'
     else:
-        # Handle POST request if needed
         pass
 
-@socketio.on('connect')
-def handle_connect():
-    print('Client connected')
-
-@socketio.on('disconnect')
-def handle_disconnect():
-    print('Client disconnected')
-
-@socketio.on('send_message')
-def handle_message(message):
-    room_code = message['room_code']
-    message_text = message['message']
-    user_name = message['user_name']
+@app.route('/room/<room_code>/send_message', methods=['POST'])
+def send_message(room_code):
+    message_text = request.form['message']
+    user_name = request.form['user_name']
     message = {'user': user_name, 'text': message_text}
     room_messages[room_code].append(message)
-    emit('receive_message', message, room=room_code, broadcast=True)
+    socketio.emit('receive_message', message, room=room_code)
+    return jsonify({'message': 'Message sent successfully!'})
 
 def generate_room_code():
     return str(uuid.uuid4())[:10]
