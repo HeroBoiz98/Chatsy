@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9402946388242349"
+     crossorigin="anonymous"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Checkout</title>
+  <style>
+    /* Basic styling for the form */
+    body {
+      font-family: Arial, sans-serif;
+    }
+    form {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    input[type="text"], input[type="email"], input[type="tel"] {
+      width: 100%;
+      padding: 10px;
+      margin: 5px 0;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+      box-sizing: border-box;
+    }
+    input[type="submit"] {
+      background-color: #4CAF50;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+    }
+    input[type="submit"]:hover {
+      background-color: #45a049;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Checkout</h1>
+
+<form id="checkoutForm" action="https://script.google.com/macros/s/AKfycbxxyPoIGwjwsuD2HA64qJ3mNo5GlFPyhkp20t91Pc5-0_4f0R0XVnGiLitMSRzedfG8CQ/exec" method="POST" target="_blank">
+  <h2>Billing Information</h2>
+  <label for="fullname">Full Name</label>
+  <input type="text" id="fullname" name="fullname" placeholder="John Doe" required>
+
+  <label for="email">Email</label>
+  <input type="email" id="email" name="email" placeholder="john@example.com" required>
+
+  <label for="phone">Phone Number</label>
+  <input type="tel" id="phone" name="phone" placeholder="123-456-7890" required>
+
+  <h2>Shipping Information</h2>
+  <label for="address">Address</label>
+  <input type="text" id="address" name="address" placeholder="123 Main St" required>
+
+  <label for="city">City</label>  
+  <input type="text" id="city" name="city" placeholder="Anytown" required>
+
+  <label for="zip">ZIP Code</label>
+  <input type="text" id="zip" name="zip" placeholder="12345" required>
+
+  <!-- Cart Items Section -->
+  <h2>Cart Items</h2>
+  <div id="cartItemsContainer"></div>
+  <input type="hidden" id="cartItems" name="cartItems">
+  <!-- Order Number Section -->
+  <h2>Order Number</h2>
+  <input type="text" id="orderNumber" name="orderNumber" readonly>
+  <h3 style="color: red;">WARNING: Please click the checkout button only once</h3>
+  <input type="submit" value="Place Order">
+  
+</form>
+
+<script>
+  let cartItems = JSON.parse(localStorage.getItem('cart')) || [];
+
+  // Construct cart items section
+  const cartItemsContainer = document.getElementById('cartItemsContainer');
+  cartItems.forEach(item => {
+    const cartItemDiv = document.createElement('div');
+    cartItemDiv.innerHTML = `<p>${item.name} - Rs.${item.price} - Quantity: ${item.quantity}</p>`;
+    cartItemsContainer.appendChild(cartItemDiv);
+  });
+
+  // Convert cartItems object to JSON string
+  const cartItemsJSON = JSON.stringify(cartItems);
+
+  // Set the hidden input field value to the JSON string
+  document.getElementById('cartItems').value = cartItemsJSON;
+
+  // Generate a unique order number
+  function generateOrderNumber() {
+    return 'ORD' + Math.random().toString(36).substr(2, 9);
+  }
+
+  // Populate billing information if available in local storage
+  let savedBillingInfo = JSON.parse(localStorage.getItem('billingInfo'));
+  if (savedBillingInfo) {
+    document.getElementById('fullname').value = savedBillingInfo.fullname;
+    document.getElementById('email').value = savedBillingInfo.email;
+    document.getElementById('phone').value = savedBillingInfo.phone;
+  }
+
+  // Populate shipping information if available in local storage
+  let savedShippingAddress = JSON.parse(localStorage.getItem('shippingAddress'));
+  if (savedShippingAddress) {
+    document.getElementById('address').value = savedShippingAddress.address;
+    document.getElementById('city').value = savedShippingAddress.city;
+    document.getElementById('zip').value = savedShippingAddress.zip;
+  }
+
+  // Set order number
+  document.getElementById('orderNumber').value = generateOrderNumber();
+
+  // Submit form event handler
+  document.querySelector('#checkoutForm').addEventListener('submit', function(e) {
+    e.preventDefault(); // Prevent form submission
+    submitFormAndShowPopup();
+  });
+
+  // Function to submit the form data to Google Sheets and then show a popup message
+  function submitFormAndShowPopup() {
+    let form = document.getElementById('checkoutForm');
+    let formData = new FormData(form);
+
+    fetch(form.action, {
+      method: form.method,
+      body: formData
+    })
+    .then(response => {
+      if (response.ok) {
+        // Form submitted successfully, show popup message
+        alert('Order successfully received!');
+        // Redirect to index.html after a short delay (optional)
+        setTimeout(function() {
+          window.location.href = 'index.html';
+        }, 1000);
+      } else {
+        throw new Error('Form submission failed.');
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      alert('An error occurred. Please try again.');
+    });
+  }
+</script>
+
+</body>
+</html>
